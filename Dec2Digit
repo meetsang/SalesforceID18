@@ -1,0 +1,6 @@
+(input) as text =>
+let
+
+        Result = if input>25 then Text.From(input-26) else Character.FromNumber(input+65)
+in
+        Result

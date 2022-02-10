@@ -1,0 +1,26 @@
+(input) as text =>
+let
+    Source = input,
+    #"Converted to Table" = #table(1, {{Source}}),
+    #"Split Column by Position" = Table.ExpandListColumn(Table.TransformColumns(#"Converted to Table", {{"Column1", Splitter.SplitTextByRepeatedLengths(1), let itemType = (type nullable text) meta [Serialized.Text = true] in type {itemType}}}), "Column1"),
+    #"Changed Type" = Table.TransformColumnTypes(#"Split Column by Position",{{"Column1", type text}}),
+    #"Added Custom" = Table.AddColumn(#"Changed Type", "Binary", each if Text.Contains("ABCDEFGHIJKLMNOPQRSTUVWXYZ",[Column1]) then 1 else 0),
+    #"Added Index" = Table.AddIndexColumn(#"Added Custom", "Index", 1, 1, Int64.Type),
+    #"Removed Other Columns" = Table.SelectColumns(#"Added Index",{"Index", "Binary"}),
+    #"Transposed Table" = Table.Transpose(#"Removed Other Columns"),
+    #"Promoted Headers" = Table.PromoteHeaders(#"Transposed Table", [PromoteAllScalars=true]),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Promoted Headers",{{"1", type text}, {"2", type text}, {"3", type text}, {"4", type text}, {"5", type text}, {"6", type text}, {"7", type text}, {"8", type text}, {"9", type text}, {"10", type text}, {"11", type text}, {"12", type text}, {"13", type text}, {"14", type text}, {"15", type text}}),
+    #"Added Bin1" = Table.AddColumn(#"Changed Type1", "Bin1", each [5] & [4] & [3] & [2] & [1]),
+    #"Added Bin2" = Table.AddColumn(#"Added Bin1", "Bin2", each [10] & [9] & [8] & [7] & [6]),
+    #"Added Bin3" = Table.AddColumn(#"Added Bin2", "Bin3", each [15] & [14] & [13] & [12] & [11]),
+    #"Removed Other Columns1" = Table.SelectColumns(#"Added Bin3",{"Bin1", "Bin2", "Bin3"}),
+    #"Added Dec1" = Table.AddColumn(#"Removed Other Columns1", "Dec1", each fnHex2Dec([Bin1],2)),
+    #"Added Dec2" = Table.AddColumn(#"Added Dec1", "Dec2", each fnHex2Dec([Bin2],2)),
+    #"Added Dec3" = Table.AddColumn(#"Added Dec2", "Dec3", each fnHex2Dec([Bin3],2)),
+    #"Removed Other Columns2" = Table.SelectColumns(#"Added Dec3",{"Dec1", "Dec2", "Dec3"}),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Removed Other Columns2",{{"Dec1", Int64.Type}, {"Dec2", Int64.Type}, {"Dec3", Int64.Type}}),
+    #"Added Digits3" = Table.AddColumn(#"Changed Type2", "3Digits", each Dec2Digit([Dec1]) & Dec2Digit([Dec2]) & Dec2Digit([Dec3])),
+    #"3Digits" = #"Added Digits3"{0}[3Digits],
+    FinalVal = input & #"3Digits"
+in
+    FinalVal
